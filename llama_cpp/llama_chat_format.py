@@ -169,6 +169,20 @@ def _format_chatml(
             ret += role + "\n"
     return ret
 
+@register_chat_format("saiga")
+def format_saiga(
+    messages: List[llama_types.ChatCompletionRequestMessage],
+    **kwargs: Any,
+) -> ChatFormatterResponse:
+    system_template = """<s>system\n{system_message}"""
+    system_message = _get_system_message(messages)
+    system_message = system_template.format(system_message=system_message)
+    _roles = dict(user="<s>user", assistant="<s>bot\n")
+    _sep = "</s>"
+    _messages = _map_roles(messages, _roles)
+    _messages.append((_roles["assistant"], None))
+    _prompt = _format_chatml(system_message, _messages, _sep)
+    return ChatFormatterResponse(prompt=_prompt, stop=_sep)
 
 @dataclasses.dataclass
 class ChatFormatterResponse:
